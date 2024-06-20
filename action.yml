@@ -35,6 +35,9 @@ inputs:
   css-output-path:
     description: 'The path to the CSS file to write the CSS variables to'
     required: false
+  css-file-href:
+    description: 'The href to the CSS file to link to in the HTML file'
+    required: false
 
 runs:
   using: 'node20'

@@ -13,6 +13,7 @@ const main = () => {
   const injectIntoHtml = core.getBooleanInput('inject-into-html')
   const htmlPath = core.getInput('html-path')
   const cssOutputPath = core.getInput('css-output-path')
+  const cssFileHref = core.getInput('css-file-href')
 
   let fileExtensionsArray: string[] | undefined = undefined
   if (fileExtensions) {
@@ -44,6 +45,7 @@ const main = () => {
     injectIntoHtml,
     htmlPath,
     cssFileOutputPath: cssOutputPath,
+    cssFileHref,
   })
 }
 

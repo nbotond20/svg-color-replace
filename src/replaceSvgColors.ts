@@ -10,6 +10,7 @@ interface Props {
   injectIntoHtml?: boolean
   htmlPath?: string
   cssFileOutputPath?: string
+  cssFileHref?: string
 }
 
 export const replaceSvgColors = ({
@@ -20,6 +21,7 @@ export const replaceSvgColors = ({
   injectIntoHtml,
   htmlPath,
   cssFileOutputPath,
+  cssFileHref,
 }: Props) => {
   let folder
 
@@ -117,9 +119,11 @@ export const replaceSvgColors = ({
     if (htmlData.includes(cssFileOutputPath ?? 'svg-colors.generated.css')) {
       console.log('CSS file already injected into the HTML file')
     } else {
+      const fileName = cssFileOutputPath?.split('/').pop()
+
       htmlData = htmlData.replace(
         '</head>',
-        `  <link rel="stylesheet" href="${cssFileOutputPath ?? 'svg-colors.generated.css'}">\n</head>`
+        `  <link rel="stylesheet" href="${cssFileHref ?? fileName ?? 'svg-colors.generated.css'}">\n</head>`
       )
 
       fs.writeFileSync(htmlFilePath, htmlData, 'utf8')
