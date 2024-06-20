@@ -24851,6 +24851,7 @@ const main = () => {
     const injectIntoHtml = core.getBooleanInput('inject-into-html');
     const htmlPath = core.getInput('html-path');
     const cssOutputPath = core.getInput('css-output-path');
+    const cssFileHref = core.getInput('css-file-href');
     let fileExtensionsArray = undefined;
     if (fileExtensions) {
         try {
@@ -24879,6 +24880,7 @@ const main = () => {
         injectIntoHtml,
         htmlPath,
         cssFileOutputPath: cssOutputPath,
+        cssFileHref,
     });
 };
 main();
@@ -24898,7 +24900,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.replaceSvgColors = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, cssFileOutputPath, }) => {
+const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, cssFileOutputPath, cssFileHref, }) => {
     let folder;
     try {
         folder = fs_1.default.readdirSync(folderPath);
@@ -24981,7 +24983,8 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
             console.log('CSS file already injected into the HTML file');
         }
         else {
-            htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssFileOutputPath ?? 'svg-colors.generated.css'}">\n</head>`);
+            const fileName = cssFileOutputPath?.split('/').pop();
+            htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssFileHref ?? fileName ?? 'svg-colors.generated.css'}">\n</head>`);
             fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
         }
     }
