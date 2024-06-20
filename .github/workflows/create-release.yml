@@ -1,0 +1,29 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+  push:
+    paths-ignore:
+      - '**/**.md'
+      - '**/**.yml'
+    branches:
+      - main
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release
+        uses: nbotond20/create-release@v1.2.3
+        with:
+          use-sem-ver: true
+          tag: ${{ inputs.tag }}

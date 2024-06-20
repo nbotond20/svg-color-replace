@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "skipLibCheck": true,
+    "alwaysStrict": true,
+    "strict": true,
+    "preserveConstEnums": true,
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "typeRoots": ["node_modules/@types"],
+    "resolveJsonModule": true,
+    "types": [ "node" ],
+  },
+  "include": ["src/**/*", "SVGs"],
+  "exclude": ["SVGs/**/*"],
+}
