@@ -93,7 +93,7 @@ export const replaceSvgColors = ({
 
   if (Object.keys(globalColorCssVariableMap).length !== 0 && !dryRun) {
     // Generate CSS file with the color : css variable map
-    const cssFilePath = path.join(folderPath, cssFileOutputPath ?? 'svg-colors.generated.css')
+    const cssFilePath = cssFileOutputPath ?? path.join(folderPath, 'svg-colors.generated.css')
     let cssData =
       '/* Generated file based on SVG files. It contains the color from the theme JSON object  */\n\n:root {\n'
     for (let color in globalColorCssVariableMap) {
