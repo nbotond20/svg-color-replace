@@ -24976,8 +24976,14 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
         // htmlPath or default root index.html
         const htmlFilePath = htmlPath || path_1.default.join('.', 'index.html');
         let htmlData = fs_1.default.readFileSync(htmlFilePath, 'utf8');
-        htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssFileOutputPath ?? 'svg-colors.generated.css'}">\n</head>`);
-        fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
+        // Check if it's already injected
+        if (htmlData.includes(cssFileOutputPath ?? 'svg-colors.generated.css')) {
+            console.log('CSS file already injected into the HTML file');
+        }
+        else {
+            htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssFileOutputPath ?? 'svg-colors.generated.css'}">\n</head>`);
+            fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
+        }
     }
 };
 exports.replaceSvgColors = replaceSvgColors;
