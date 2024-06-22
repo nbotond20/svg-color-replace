@@ -24841,6 +24841,8 @@ const injectIntoHtml = core.getBooleanInput('inject-into-html');
 const htmlPath = core.getInput('html-path');
 const cssFileOutputFolderPath = core.getInput('css-file-output-folder-path');
 const cssFileHrefPrefix = core.getInput('css-file-href-prefix');
+const svgOutputFolderPath = core.getInput('svg-output-folder-path');
+const markGeneratedSVGFiles = core.getBooleanInput('mark-generated-files');
 let fileExtensionsArray = undefined;
 if (fileExtensions) {
     fileExtensionsArray = (0, parseAsArray_1.parseAsArray)(fileExtensions, 'file-extensions');
@@ -24860,6 +24862,8 @@ if (Object.keys(baseCssMap).length === 0) {
     console.warn('No baseCssMap generated!');
 }
 (0, replaceSvgColors_1.replaceSvgColors)({
+    markGeneratedSVGFiles,
+    svgOutputFolderPath,
     tokenSetInputPaths: tokenSetInputPathsArray,
     folderPath: svgFolderPath,
     cssMap: baseCssMap.cssMap,
@@ -24892,7 +24896,7 @@ const getObjectPathFromCssVariable_1 = __nccwpck_require__(148);
 const getObjectValueWithNestedKey_1 = __nccwpck_require__(8360);
 const getCssVariableFromObjectPath_1 = __nccwpck_require__(9219);
 const getFileNameFromPath_1 = __nccwpck_require__(3211);
-const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, baseCssMapName, cssFileHrefPrefix, cssFileOutputFolderPath, tokenSetInputPaths, }) => {
+const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, baseCssMapName, cssFileHrefPrefix, cssFileOutputFolderPath, tokenSetInputPaths, svgOutputFolderPath, markGeneratedSVGFiles, }) => {
     let folder;
     try {
         folder = fs_1.default.readdirSync(folderPath);
@@ -24935,9 +24939,22 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
             const re = new RegExp(color, 'gi');
             newData = newData.replace(re, `var(${colorCssVariableMap[color]})`);
         }
+        // if markGeneratedSVGFiles is true, add .generated. to the file name
+        const fileNameToWrite = markGeneratedSVGFiles
+            ? `${path_1.default.basename(file, path_1.default.extname(file))}.generated${path_1.default.extname(file)}`
+            : file;
+        const outputFilePath = svgOutputFolderPath
+            ? path_1.default.join(svgOutputFolderPath, fileNameToWrite)
+            : path_1.default.join(folderPath, fileNameToWrite);
+        // Create the output folder if it doesn't exist
+        if (svgOutputFolderPath) {
+            const outputFolder = path_1.default.dirname(outputFilePath);
+            if (!fs_1.default.existsSync(outputFolder)) {
+                fs_1.default.mkdirSync(outputFolder, { recursive: true });
+            }
+        }
         // Replace the file with the new data
-        /* TODO */
-        !dryRun && fs_1.default.writeFileSync(filePath, newData, 'utf8');
+        !dryRun && fs_1.default.writeFileSync(outputFilePath, newData, 'utf8');
     });
     /* Create base CSS files */
     const cssFilePath = path_1.default.join(cssFileOutputFolderPath ?? '.', `${baseCssMapName}.css`);
