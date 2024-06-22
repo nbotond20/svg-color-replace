@@ -24705,7 +24705,7 @@ exports["default"] = _default;
 
 /***/ }),
 
-/***/ 651:
+/***/ 3891:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -24734,76 +24734,65 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateCssMap = void 0;
+exports.generateBaseCssMap = void 0;
 const fs = __importStar(__nccwpck_require__(7147));
-const generateCssMap = ({ tokenSetInputPath: inputPath, cssMapOutputPath: outputPath, tokenSetKey, preferDeepKey, }) => {
-    if (!inputPath) {
-        console.error('Please provide input path!');
-        return;
-    }
-    const cssVariablesMap = {};
+const getSelectedPartsOfObject_1 = __nccwpck_require__(6074);
+const getFileNameFromPath_1 = __nccwpck_require__(3211);
+const generateBaseCssMap = ({ baseTokenSetInputPath, tokenSetKeys, preferDeepKey }) => {
     let file;
     try {
-        file = fs.readFileSync(inputPath, 'utf8');
+        file = fs.readFileSync(baseTokenSetInputPath, 'utf8');
     }
-    catch (error) {
-        console.error('Error reading file', error);
-        return;
+    catch {
+        throw new Error('Error reading base token set file');
     }
     let parsedFile;
     try {
         parsedFile = JSON.parse(file);
     }
-    catch (error) {
-        console.error('Error parsing JSON', error);
-        return;
+    catch {
+        throw new Error('Error parsing JSON file');
     }
-    let seSepSeTokens;
-    if (tokenSetKey) {
+    let seSepSeTokens = {};
+    if (tokenSetKeys?.length) {
         try {
-            seSepSeTokens = parsedFile[tokenSetKey];
+            seSepSeTokens = (0, getSelectedPartsOfObject_1.getSelectedPartsOfObject)(parsedFile, tokenSetKeys);
         }
-        catch (error) {
-            console.error(`Error getting tokenSetKey (${tokenSetKey}) from JSON object`, error);
-            return;
+        catch {
+            throw new Error(`Error getting one of tokenSetKeys from JSON object`);
         }
     }
     else {
-        seSepSeTokens = file;
+        seSepSeTokens = parsedFile;
     }
+    const baseCssVariablesMap = {};
     const visitMap = (obj, path = '') => {
         for (let key in obj) {
             if (typeof obj[key] === 'object') {
                 visitMap(obj[key], path + key + '-');
             }
             else {
-                if (!cssVariablesMap[obj[key]]) {
-                    cssVariablesMap[obj[key]] = [];
+                if (!baseCssVariablesMap[obj[key]]) {
+                    baseCssVariablesMap[obj[key]] = [];
                 }
-                cssVariablesMap[obj[key]].push(`--${path}${key}`);
+                baseCssVariablesMap[obj[key]].push(`--${path}${key}`);
             }
         }
     };
     visitMap(seSepSeTokens);
-    const cssVariablesMapJsonContent = JSON.stringify(cssVariablesMap);
     /* Visit the new object's every key and order the value array by the number of "-"" symbols in it. Put the lower number first. */
-    for (let key in cssVariablesMap) {
-        cssVariablesMap[key].sort((a, b) => {
+    for (let key in baseCssVariablesMap) {
+        baseCssVariablesMap[key].sort((a, b) => {
             return preferDeepKey ? b.split('-').length - a.split('-').length : a.split('-').length - b.split('-').length;
         });
     }
-    if (outputPath) {
-        try {
-            fs.writeFileSync(outputPath, cssVariablesMapJsonContent, 'utf8');
-        }
-        catch (error) {
-            console.error('Error writing file', error);
-            return;
-        }
-    }
-    return cssVariablesMap;
+    const fileName = (0, getFileNameFromPath_1.getFileNameFromPath)(baseTokenSetInputPath);
+    return {
+        name: fileName,
+        cssMap: baseCssVariablesMap,
+    };
 };
-exports.generateCssMap = generateCssMap;
+exports.generateBaseCssMap = generateBaseCssMap;
 
 
 /***/ }),
@@ -24838,52 +24827,50 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(9093));
-const generateCssMap_1 = __nccwpck_require__(651);
+const generateCssMaps_1 = __nccwpck_require__(3891);
 const replaceSvgColors_1 = __nccwpck_require__(7300);
-const main = () => {
-    const svgFolderPath = core.getInput('svg-folder-path', { required: true });
-    const tokenSetInputPath = core.getInput('token-set-input-path', { required: true });
-    const dryRun = core.getBooleanInput('dry-run');
-    const tokenSetKey = core.getInput('token-set-key');
-    const preferDeepKey = core.getBooleanInput('prefer-deep-key');
-    const cssMapOutputPath = core.getInput('css-map-output-path');
-    const fileExtensions = core.getInput('file-extensions');
-    const injectIntoHtml = core.getBooleanInput('inject-into-html');
-    const htmlPath = core.getInput('html-path');
-    const cssOutputPath = core.getInput('css-output-path');
-    const cssFileHref = core.getInput('css-file-href');
-    let fileExtensionsArray = undefined;
-    if (fileExtensions) {
-        try {
-            fileExtensionsArray = JSON.parse(fileExtensions);
-        }
-        catch (error) {
-            console.error('Error parsing file extensions', error);
-            return;
-        }
-    }
-    const cssMap = (0, generateCssMap_1.generateCssMap)({
-        tokenSetInputPath,
-        tokenSetKey,
-        preferDeepKey,
-        cssMapOutputPath,
-    });
-    if (!cssMap) {
-        console.error('No cssMap generated!');
-        return;
-    }
-    (0, replaceSvgColors_1.replaceSvgColors)({
-        folderPath: svgFolderPath,
-        cssMap: cssMap,
-        fileExtensions: fileExtensionsArray,
-        dryRun,
-        injectIntoHtml,
-        htmlPath,
-        cssFileOutputPath: cssOutputPath,
-        cssFileHref,
-    });
-};
-main();
+const parseAsArray_1 = __nccwpck_require__(9202);
+const svgFolderPath = core.getInput('svg-folder-path', { required: true });
+const tokenSetInputPaths = core.getInput('token-set-input-paths', { required: true });
+const baseTokenSetInputPath = core.getInput('base-token-set-input-path', { required: true });
+const dryRun = core.getBooleanInput('dry-run');
+const tokenSetKeys = core.getInput('token-set-keys');
+const preferDeepKey = core.getBooleanInput('prefer-deep-key');
+const fileExtensions = core.getInput('file-extensions');
+const injectIntoHtml = core.getBooleanInput('inject-into-html');
+const htmlPath = core.getInput('html-path');
+const cssFileOutputFolderPath = core.getInput('css-file-output-folder-path');
+const cssFileHrefPrefix = core.getInput('css-file-href-prefix');
+let fileExtensionsArray = undefined;
+if (fileExtensions) {
+    fileExtensionsArray = (0, parseAsArray_1.parseAsArray)(fileExtensions, 'file-extensions');
+}
+let tokenSetKeysArray = undefined;
+if (tokenSetKeys) {
+    tokenSetKeysArray = (0, parseAsArray_1.parseAsArray)(tokenSetKeys, 'token-set-keys');
+}
+let tokenSetInputPathsArray = undefined;
+tokenSetInputPathsArray = (0, parseAsArray_1.parseAsArray)(tokenSetInputPaths, 'token-set-input-paths');
+const baseCssMap = (0, generateCssMaps_1.generateBaseCssMap)({
+    tokenSetKeys: tokenSetKeysArray,
+    baseTokenSetInputPath,
+    preferDeepKey,
+});
+if (Object.keys(baseCssMap).length === 0) {
+    console.warn('No baseCssMap generated!');
+}
+(0, replaceSvgColors_1.replaceSvgColors)({
+    tokenSetInputPaths: tokenSetInputPathsArray,
+    folderPath: svgFolderPath,
+    cssMap: baseCssMap.cssMap,
+    baseCssMapName: baseCssMap.name,
+    fileExtensions: fileExtensionsArray,
+    dryRun,
+    injectIntoHtml,
+    htmlPath,
+    cssFileHrefPrefix,
+    cssFileOutputFolderPath,
+});
 
 
 /***/ }),
@@ -24900,7 +24887,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.replaceSvgColors = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, cssFileOutputPath, cssFileHref, }) => {
+const getUniqueSVGColorsFromString_1 = __nccwpck_require__(2889);
+const getObjectPathFromCssVariable_1 = __nccwpck_require__(148);
+const getObjectValueWithNestedKey_1 = __nccwpck_require__(8360);
+const getCssVariableFromObjectPath_1 = __nccwpck_require__(9219);
+const getFileNameFromPath_1 = __nccwpck_require__(3211);
+const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIntoHtml, htmlPath, baseCssMapName, cssFileHrefPrefix, cssFileOutputFolderPath, tokenSetInputPaths, }) => {
     let folder;
     try {
         folder = fs_1.default.readdirSync(folderPath);
@@ -24909,13 +24901,12 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
         console.error('Error reading folder', error);
         return;
     }
-    console.log('folder', folder);
-    // Create color : css variable map
-    const globalColorCssVariableMap = {};
     const fileExtensionsSet = new Set(fileExtensions);
     if (fileExtensions && fileExtensions.length > 0) {
         folder = folder.filter(file => fileExtensionsSet.has(path_1.default.extname(file)));
     }
+    // Create color : css variable map
+    const globalColorCssVariableMap = {};
     /* Loop through all files in the folder and replace the FILL and STROKE colors with the css variables. If there are more than one css variables for the given color pick the first one. */
     folder.forEach(file => {
         const filePath = path_1.default.join(folderPath, file);
@@ -24928,18 +24919,7 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
             return;
         }
         // Match all STROKE and FILL colors in the SVG file. The color can be in HEX or color name format.
-        const colors = data
-            .match(/(fill|stroke)="(#[0-9A-Fa-f]{3,6}|[a-zA-Z]+)"/g)
-            ?.map(color => {
-            const colorName = color.split('=')[1].replace(/"/g, '');
-            const isHex = colorName.match(/#[0-9A-Fa-f]{3,6}/);
-            if (isHex) {
-                return colorName.toLocaleLowerCase();
-            }
-            return undefined;
-        })
-            .filter(Boolean);
-        const uniqueColors = colors ? Array.from(new Set(colors)) : [];
+        const uniqueColors = (0, getUniqueSVGColorsFromString_1.getUniqueSVGColorsFromString)(data);
         // Create color : css variable map
         const colorCssVariableMap = {};
         uniqueColors.forEach(color => {
@@ -24955,42 +24935,286 @@ const replaceSvgColors = ({ folderPath, cssMap, fileExtensions, dryRun, injectIn
             const re = new RegExp(color, 'gi');
             newData = newData.replace(re, `var(${colorCssVariableMap[color]})`);
         }
-        console.log('File updated:', filePath);
         // Replace the file with the new data
+        /* TODO */
         !dryRun && fs_1.default.writeFileSync(filePath, newData, 'utf8');
     });
+    /* Create base CSS files */
+    const cssFilePath = path_1.default.join(cssFileOutputFolderPath ?? '.', `${baseCssMapName}.css`);
     if (Object.keys(globalColorCssVariableMap).length !== 0 && !dryRun) {
         // Generate CSS file with the color : css variable map
-        const cssFilePath = cssFileOutputPath ?? path_1.default.join(folderPath, 'svg-colors.generated.css');
-        let cssData = '/* Generated file based on SVG files. It contains the color from the theme JSON object  */\n\n:root {\n';
+        let cssData = `/* Generated file based on the theme JSON object ${baseCssMapName}  */\n\n.${baseCssMapName} {\n`;
         for (let color in globalColorCssVariableMap) {
             cssData += `  ${globalColorCssVariableMap[color]}: ${color};\n`;
         }
         cssData += '}\n';
         fs_1.default.writeFileSync(cssFilePath, cssData, 'utf8');
+        // Inject the CSS file into the HTML file
+        if (injectIntoHtml) {
+            console.log(`Injecting CSS file into the HTML file (${baseCssMapName})`);
+            // htmlPath or default root index.html
+            const htmlFilePath = htmlPath || path_1.default.join('.', 'index.html');
+            let htmlData = fs_1.default.readFileSync(htmlFilePath, 'utf8');
+            const cssHref = cssFileHrefPrefix ? `${cssFileHrefPrefix}/${baseCssMapName}.css` : `${baseCssMapName}.css`;
+            // Check if it's already injected
+            if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
+                console.log(`CSS file already injected into the HTML file (${baseCssMapName})`);
+            }
+            else {
+                htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}" />\n  </head>`);
+                fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
+            }
+        }
     }
     else {
         !dryRun && console.warn('No colors found in the SVG files! No CSS file generated.');
     }
-    // Inject the CSS file into the HTML file
-    if (injectIntoHtml && !dryRun) {
-        console.log('Injecting CSS file into the HTML file');
-        // htmlPath or default root index.html
-        const htmlFilePath = htmlPath || path_1.default.join('.', 'index.html');
-        let htmlData = fs_1.default.readFileSync(htmlFilePath, 'utf8');
-        const fileName = cssFileOutputPath?.split('/').pop();
-        const cssHref = cssFileHref ?? fileName ?? 'svg-colors.generated.css';
-        // Check if it's already injected
-        if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
-            console.log('CSS file already injected into the HTML file');
+    /* Create CSS files for all other theme objects */
+    const themeKeys = Object.values(globalColorCssVariableMap).map(getObjectPathFromCssVariable_1.getObjectPathFromCssVariable);
+    for (let tokenSetInputPath of tokenSetInputPaths) {
+        let file;
+        try {
+            file = fs_1.default.readFileSync(tokenSetInputPath, 'utf8');
         }
-        else {
-            htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}">\n</head>`);
-            fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
+        catch {
+            throw new Error(`Error reading token set file ${tokenSetInputPath}`);
+        }
+        let parsedFile;
+        try {
+            parsedFile = JSON.parse(file);
+        }
+        catch {
+            throw new Error(`Error parsing JSON file ${tokenSetInputPath}`);
+        }
+        const fileName = (0, getFileNameFromPath_1.getFileNameFromPath)(tokenSetInputPath);
+        const cssKeyValueMap = {};
+        // Create map of themeKeys transformed to css variables : theme values
+        themeKeys.forEach(key => {
+            const value = (0, getObjectValueWithNestedKey_1.getObjectValueWithNestedKey)(parsedFile, key);
+            const cssVariable = (0, getCssVariableFromObjectPath_1.getCssVariableFromObjectPath)(key);
+            cssKeyValueMap[cssVariable] = value;
+        });
+        // Generate CSS file with the css variable : theme value map
+        let cssData = `/* Generated file based on the theme JSON object ${fileName} */\n\n.${fileName} {\n`;
+        for (let cssVariable in cssKeyValueMap) {
+            cssData += `  ${cssVariable}: ${cssKeyValueMap[cssVariable]};\n`;
+        }
+        cssData += '}\n';
+        const cssFilePath = path_1.default.join(cssFileOutputFolderPath ?? '.', `${fileName}.css`);
+        fs_1.default.writeFileSync(cssFilePath, cssData, 'utf8');
+        // Inject the CSS file into the HTML file
+        if (injectIntoHtml) {
+            console.log(`Injecting CSS file into the HTML file (${fileName})`);
+            // htmlPath or default root index.html
+            const htmlFilePath = htmlPath || path_1.default.join('.', 'index.html');
+            let htmlData = fs_1.default.readFileSync(htmlFilePath, 'utf8');
+            const cssHref = cssFileHrefPrefix ? `${cssFileHrefPrefix}/${fileName}.css` : `${fileName}.css`;
+            // Check if it's already injected
+            if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
+                console.log(`CSS file already injected into the HTML file (${fileName})`);
+            }
+            else {
+                htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}" />\n  </head>`);
+                fs_1.default.writeFileSync(htmlFilePath, htmlData, 'utf8');
+            }
         }
     }
 };
 exports.replaceSvgColors = replaceSvgColors;
+
+
+/***/ }),
+
+/***/ 3258:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.flattenObject = void 0;
+const flattenObject = (obj, path = '') => {
+    const flat = {};
+    for (let key in obj) {
+        if (typeof obj[key] === 'object') {
+            Object.assign(flat, (0, exports.flattenObject)(obj[key], path + key + '.'));
+        }
+        else {
+            flat[path + key] = obj[key];
+        }
+    }
+    return flat;
+};
+exports.flattenObject = flattenObject;
+
+
+/***/ }),
+
+/***/ 9219:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getCssVariableFromObjectPath = void 0;
+const getCssVariableFromObjectPath = (path) => {
+    const pathArray = path.split('.');
+    return `--${pathArray.join('-')}`;
+};
+exports.getCssVariableFromObjectPath = getCssVariableFromObjectPath;
+
+
+/***/ }),
+
+/***/ 3211:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getFileNameFromPath = void 0;
+const getFileNameFromPath = (path, withExtension = false) => {
+    const fileNameParts = path.split('/');
+    return withExtension ? fileNameParts[fileNameParts.length - 1] : fileNameParts[fileNameParts.length - 1].split('.')[0];
+};
+exports.getFileNameFromPath = getFileNameFromPath;
+
+
+/***/ }),
+
+/***/ 148:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getObjectPathFromCssVariable = void 0;
+const getObjectPathFromCssVariable = (cssVariable) => {
+    const path = cssVariable.split('--')[1];
+    return path.split('-').filter(Boolean).join('.');
+};
+exports.getObjectPathFromCssVariable = getObjectPathFromCssVariable;
+
+
+/***/ }),
+
+/***/ 8360:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getObjectValueWithNestedKey = void 0;
+const getObjectValueWithNestedKey = (obj, key) => {
+    const keys = key.split('.');
+    return keys.reduce((acc, currentKey) => {
+        return acc[currentKey.toString()];
+    }, obj);
+};
+exports.getObjectValueWithNestedKey = getObjectValueWithNestedKey;
+
+
+/***/ }),
+
+/***/ 6074:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getSelectedPartsOfObject = void 0;
+const flattenObject_1 = __nccwpck_require__(3258);
+const unflattenObject_1 = __nccwpck_require__(5538);
+const getSelectedPartsOfObject = (object, keys) => {
+    // Flatten the object
+    const flatObj = (0, flattenObject_1.flattenObject)(object);
+    const seSepSeTokens = Object.keys(flatObj)
+        .filter(objKey => keys.some(key => objKey.includes(key)))
+        .reduce((obj, key) => {
+        obj[key] = flatObj[key];
+        return obj;
+    }, {});
+    // Unflat the object
+    return (0, unflattenObject_1.unflattenObject)(seSepSeTokens);
+};
+exports.getSelectedPartsOfObject = getSelectedPartsOfObject;
+
+
+/***/ }),
+
+/***/ 2889:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUniqueSVGColorsFromString = void 0;
+const getUniqueSVGColorsFromString = (svgString) => {
+    const colors = svgString
+        .match(/(fill|stroke)="(#[0-9A-Fa-f]{3,6}|[a-zA-Z]+)"/g)
+        ?.map(color => {
+        const colorName = color.split('=')[1].replace(/"/g, '');
+        const isHex = colorName.match(/#[0-9A-Fa-f]{3,6}/);
+        if (isHex) {
+            return colorName.toLocaleLowerCase();
+        }
+        return undefined;
+    })
+        .filter(Boolean);
+    const uniqueColors = colors ? Array.from(new Set(colors)) : [];
+    return uniqueColors;
+};
+exports.getUniqueSVGColorsFromString = getUniqueSVGColorsFromString;
+
+
+/***/ }),
+
+/***/ 9202:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseAsArray = void 0;
+const parseAsArray = (input, name) => {
+    if (Array.isArray(input)) {
+        return input;
+    }
+    try {
+        const parsed = JSON.parse(input);
+        if (!Array.isArray(parsed)) {
+            throw new Error(`Not an array. (${name})`);
+        }
+        return parsed;
+    }
+    catch {
+        throw new Error(`Error parsing JSON. (${name})`);
+    }
+};
+exports.parseAsArray = parseAsArray;
+
+
+/***/ }),
+
+/***/ 5538:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.unflattenObject = void 0;
+const unflattenObject = (obj) => {
+    const unflat = {};
+    for (let key in obj) {
+        const keys = key.split('.');
+        let current = unflat;
+        for (let i = 0; i < keys.length - 1; i++) {
+            current = current[keys[i]] = current[keys[i]] || {};
+        }
+        current[keys[keys.length - 1]] = obj[key];
+    }
+    return unflat;
+};
+exports.unflattenObject = unflattenObject;
 
 
 /***/ }),
