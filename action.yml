@@ -38,6 +38,13 @@ inputs:
   css-file-href-prefix:
     description: 'The prefix to add to the CSS file href in the HTML file'
     required: false
+  svg-output-folder-path:
+    description: 'The path to the folder to output the SVG files to'
+    required: false
+  mark-generated-files:
+    description: 'If true, the action will add .generated to the file name of the generated files'
+    default: 'false'
+    required: false
 
 runs:
   using: 'node20'

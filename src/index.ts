@@ -14,6 +14,8 @@ const injectIntoHtml = core.getBooleanInput('inject-into-html')
 const htmlPath = core.getInput('html-path')
 const cssFileOutputFolderPath = core.getInput('css-file-output-folder-path')
 const cssFileHrefPrefix = core.getInput('css-file-href-prefix')
+const svgOutputFolderPath = core.getInput('svg-output-folder-path')
+const markGeneratedSVGFiles = core.getBooleanInput('mark-generated-files')
 
 let fileExtensionsArray: string[] | undefined = undefined
 if (fileExtensions) {
@@ -39,6 +41,8 @@ if (Object.keys(baseCssMap).length === 0) {
 }
 
 replaceSvgColors({
+  markGeneratedSVGFiles,
+  svgOutputFolderPath,
   tokenSetInputPaths: tokenSetInputPathsArray,
   folderPath: svgFolderPath,
   cssMap: baseCssMap.cssMap,

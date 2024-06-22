@@ -19,6 +19,8 @@ interface Props {
   htmlPath?: string
   cssFileHrefPrefix?: string
   cssFileOutputFolderPath?: string
+  svgOutputFolderPath?: string
+  markGeneratedSVGFiles?: boolean
 }
 
 export const replaceSvgColors = ({
@@ -32,6 +34,8 @@ export const replaceSvgColors = ({
   cssFileHrefPrefix,
   cssFileOutputFolderPath,
   tokenSetInputPaths,
+  svgOutputFolderPath,
+  markGeneratedSVGFiles,
 }: Props) => {
   let folder
 
@@ -81,9 +85,25 @@ export const replaceSvgColors = ({
       newData = newData.replace(re, `var(${colorCssVariableMap[color]})`)
     }
 
+    // if markGeneratedSVGFiles is true, add .generated. to the file name
+    const fileNameToWrite = markGeneratedSVGFiles
+      ? `${path.basename(file, path.extname(file))}.generated${path.extname(file)}`
+      : file
+
+    const outputFilePath = svgOutputFolderPath
+      ? path.join(svgOutputFolderPath, fileNameToWrite)
+      : path.join(folderPath, fileNameToWrite)
+
+    // Create the output folder if it doesn't exist
+    if (svgOutputFolderPath) {
+      const outputFolder = path.dirname(outputFilePath)
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder, { recursive: true })
+      }
+    }
+
     // Replace the file with the new data
-    /* TODO */
-    !dryRun && fs.writeFileSync(filePath, newData, 'utf8')
+    !dryRun && fs.writeFileSync(outputFilePath, newData, 'utf8')
   })
 
   /* Create base CSS files */

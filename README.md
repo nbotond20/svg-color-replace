@@ -4,19 +4,21 @@ This action replaces colors in SVG files with CSS variables coming from a JSON c
 
 ## Inputs
 
-| Name                          | Description                                                    | Required | Default |
-| ----------------------------- | -------------------------------------------------------------- | -------- | ------- |
-| `svg-folder-path`             | The path to the folder containing the SVG files.               | Yes      | N/A     |
-| `token-set-input-paths`       | The path to the JSON file containing the color token set.      | Yes      | N/A     |
-| `base-token-set-input-path`   | The path to the JSON file containing the base color token set. | Yes      | N/A     |
-| `dry-run`                     | Whether to run the action without modifying the files.         | No       | `false` |
-| `token-set-keys`              | The keys to use from the token set.                            | No       | N/A     |
-| `prefer-deep-key`             | Whether to prefer deep keys over shallow keys.                 | No       | `false` |
-| `file-extensions`             | The file extensions to process.                                | No       | `["*"]` |
-| `inject-into-html`            | Whether to inject the CSS file into the HTML file.             | No       | `false` |
-| `html-path`                   | The path to the HTML file to inject the CSS file into.         | No       | N/A     |
-| `css-file-output-folder-path` | The path to the folder to output the CSS file to.              | No       | N/A     |
-| `css-file-href-prefix`        | The prefix to use for the CSS file href.                       | No       | N/A     |
+| Name                          | Description                                                     | Required | Default |
+| ----------------------------- | --------------------------------------------------------------- | -------- | ------- |
+| `svg-folder-path`             | The path to the folder containing the SVG files.                | Yes      | N/A     |
+| `token-set-input-paths`       | The path to the JSON file containing the color token set.       | Yes      | N/A     |
+| `base-token-set-input-path`   | The path to the JSON file containing the base color token set.  | Yes      | N/A     |
+| `dry-run`                     | Whether to run the action without modifying the files.          | No       | `false` |
+| `token-set-keys`              | The keys to use from the token set.                             | No       | N/A     |
+| `prefer-deep-key`             | Whether to prefer deep keys over shallow keys.                  | No       | `false` |
+| `file-extensions`             | The file extensions to process.                                 | No       | `["*"]` |
+| `inject-into-html`            | Whether to inject the CSS file into the HTML file.              | No       | `false` |
+| `html-path`                   | The path to the HTML file to inject the CSS file into.          | No       | N/A     |
+| `css-file-output-folder-path` | The path to the folder to output the CSS file to.               | No       | N/A     |
+| `css-file-href-prefix`        | The prefix to use for the CSS file href.                        | No       | N/A     |
+| `svg-output-folder-path`      | The path to the folder to output the modified SVG files to.     | No       | N/A     |
+| `mark-generated-files`        | Whether to mark the generated files. (.generated. in file name) | No       | `false` |
 
 ## Example usage
 
