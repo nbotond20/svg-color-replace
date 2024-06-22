@@ -1,16 +1,24 @@
 import fs from 'fs'
 import path from 'path'
-import { CssMap } from './generateCssMap'
+import { CssMap } from './generateCssMaps'
+import { getUniqueSVGColorsFromString } from './utils/getUniqueSVGColorsFromString'
+import { getObjectPathFromCssVariable } from './utils/getObjectPathFromCssVariable'
+import { RecursiveObject } from './utils/getSelectedPartsOfObject'
+import { getObjectValueWithNestedKey } from './utils/getObjectValueWithNestedKey'
+import { getCssVariableFromObjectPath } from './utils/getCssVariableFromObjectPath'
+import { getFileNameFromPath } from './utils/getFileNameFromPath'
 
 interface Props {
+  tokenSetInputPaths: string[]
   folderPath: string
   cssMap: CssMap
+  baseCssMapName: string
   fileExtensions?: string[]
   dryRun?: boolean
   injectIntoHtml?: boolean
   htmlPath?: string
-  cssFileOutputPath?: string
-  cssFileHref?: string
+  cssFileHrefPrefix?: string
+  cssFileOutputFolderPath?: string
 }
 
 export const replaceSvgColors = ({
@@ -20,8 +28,10 @@ export const replaceSvgColors = ({
   dryRun,
   injectIntoHtml,
   htmlPath,
-  cssFileOutputPath,
-  cssFileHref,
+  baseCssMapName,
+  cssFileHrefPrefix,
+  cssFileOutputFolderPath,
+  tokenSetInputPaths,
 }: Props) => {
   let folder
 
@@ -32,17 +42,14 @@ export const replaceSvgColors = ({
     return
   }
 
-  console.log('folder', folder)
-
-  // Create color : css variable map
-  const globalColorCssVariableMap: { [key: string]: string } = {}
-
   const fileExtensionsSet = new Set(fileExtensions)
 
   if (fileExtensions && fileExtensions.length > 0) {
     folder = folder.filter(file => fileExtensionsSet.has(path.extname(file)))
   }
 
+  // Create color : css variable map
+  const globalColorCssVariableMap: { [key: string]: string } = {}
   /* Loop through all files in the folder and replace the FILL and STROKE colors with the css variables. If there are more than one css variables for the given color pick the first one. */
   folder.forEach(file => {
     const filePath = path.join(folderPath, file)
@@ -55,21 +62,7 @@ export const replaceSvgColors = ({
     }
 
     // Match all STROKE and FILL colors in the SVG file. The color can be in HEX or color name format.
-    const colors = data
-      .match(/(fill|stroke)="(#[0-9A-Fa-f]{3,6}|[a-zA-Z]+)"/g)
-      ?.map(color => {
-        const colorName = color.split('=')[1].replace(/"/g, '')
-
-        const isHex = colorName.match(/#[0-9A-Fa-f]{3,6}/)
-        if (isHex) {
-          return colorName.toLocaleLowerCase()
-        }
-
-        return undefined
-      })
-      .filter(Boolean) as string[]
-
-    const uniqueColors = colors ? Array.from(new Set(colors)) : []
+    const uniqueColors = getUniqueSVGColorsFromString(data)
 
     // Create color : css variable map
     const colorCssVariableMap: { [key: string]: string } = {}
@@ -88,43 +81,101 @@ export const replaceSvgColors = ({
       newData = newData.replace(re, `var(${colorCssVariableMap[color]})`)
     }
 
-    console.log('File updated:', filePath)
     // Replace the file with the new data
+    /* TODO */
     !dryRun && fs.writeFileSync(filePath, newData, 'utf8')
   })
 
+  /* Create base CSS files */
+  const cssFilePath = path.join(cssFileOutputFolderPath ?? '.', `${baseCssMapName}.css`)
   if (Object.keys(globalColorCssVariableMap).length !== 0 && !dryRun) {
     // Generate CSS file with the color : css variable map
-    const cssFilePath = cssFileOutputPath ?? path.join(folderPath, 'svg-colors.generated.css')
-    let cssData =
-      '/* Generated file based on SVG files. It contains the color from the theme JSON object  */\n\n:root {\n'
+    let cssData = `/* Generated file based on the theme JSON object ${baseCssMapName}  */\n\n.${baseCssMapName} {\n`
     for (let color in globalColorCssVariableMap) {
       cssData += `  ${globalColorCssVariableMap[color]}: ${color};\n`
     }
     cssData += '}\n'
 
     fs.writeFileSync(cssFilePath, cssData, 'utf8')
+
+    // Inject the CSS file into the HTML file
+    if (injectIntoHtml) {
+      console.log(`Injecting CSS file into the HTML file (${baseCssMapName})`)
+      // htmlPath or default root index.html
+      const htmlFilePath = htmlPath || path.join('.', 'index.html')
+      let htmlData = fs.readFileSync(htmlFilePath, 'utf8')
+
+      const cssHref = cssFileHrefPrefix ? `${cssFileHrefPrefix}/${baseCssMapName}.css` : `${baseCssMapName}.css`
+
+      // Check if it's already injected
+      if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
+        console.log(`CSS file already injected into the HTML file (${baseCssMapName})`)
+      } else {
+        htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}" />\n  </head>`)
+
+        fs.writeFileSync(htmlFilePath, htmlData, 'utf8')
+      }
+    }
   } else {
     !dryRun && console.warn('No colors found in the SVG files! No CSS file generated.')
   }
 
-  // Inject the CSS file into the HTML file
-  if (injectIntoHtml && !dryRun) {
-    console.log('Injecting CSS file into the HTML file')
-    // htmlPath or default root index.html
-    const htmlFilePath = htmlPath || path.join('.', 'index.html')
-    let htmlData = fs.readFileSync(htmlFilePath, 'utf8')
+  /* Create CSS files for all other theme objects */
+  const themeKeys = Object.values(globalColorCssVariableMap).map(getObjectPathFromCssVariable)
 
-    const fileName = cssFileOutputPath?.split('/').pop()
-    const cssHref = cssFileHref ?? fileName ?? 'svg-colors.generated.css'
+  for (let tokenSetInputPath of tokenSetInputPaths) {
+    let file: string
+    try {
+      file = fs.readFileSync(tokenSetInputPath, 'utf8')
+    } catch {
+      throw new Error(`Error reading token set file ${tokenSetInputPath}`)
+    }
 
-    // Check if it's already injected
-    if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
-      console.log('CSS file already injected into the HTML file')
-    } else {
-      htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}">\n</head>`)
+    let parsedFile: RecursiveObject
+    try {
+      parsedFile = JSON.parse(file)
+    } catch {
+      throw new Error(`Error parsing JSON file ${tokenSetInputPath}`)
+    }
 
-      fs.writeFileSync(htmlFilePath, htmlData, 'utf8')
+    const fileName = getFileNameFromPath(tokenSetInputPath)
+
+    const cssKeyValueMap: { [key: string]: string } = {}
+    // Create map of themeKeys transformed to css variables : theme values
+    themeKeys.forEach(key => {
+      const value = getObjectValueWithNestedKey(parsedFile, key)
+      const cssVariable = getCssVariableFromObjectPath(key)
+
+      cssKeyValueMap[cssVariable] = value
+    })
+
+    // Generate CSS file with the css variable : theme value map
+    let cssData = `/* Generated file based on the theme JSON object ${fileName} */\n\n.${fileName} {\n`
+    for (let cssVariable in cssKeyValueMap) {
+      cssData += `  ${cssVariable}: ${cssKeyValueMap[cssVariable]};\n`
+    }
+    cssData += '}\n'
+
+    const cssFilePath = path.join(cssFileOutputFolderPath ?? '.', `${fileName}.css`)
+    fs.writeFileSync(cssFilePath, cssData, 'utf8')
+
+    // Inject the CSS file into the HTML file
+    if (injectIntoHtml) {
+      console.log(`Injecting CSS file into the HTML file (${fileName})`)
+      // htmlPath or default root index.html
+      const htmlFilePath = htmlPath || path.join('.', 'index.html')
+      let htmlData = fs.readFileSync(htmlFilePath, 'utf8')
+
+      const cssHref = cssFileHrefPrefix ? `${cssFileHrefPrefix}/${fileName}.css` : `${fileName}.css`
+
+      // Check if it's already injected
+      if (htmlData.includes(cssHref ?? 'svg-colors.generated.css')) {
+        console.log(`CSS file already injected into the HTML file (${fileName})`)
+      } else {
+        htmlData = htmlData.replace('</head>', `  <link rel="stylesheet" href="${cssHref}" />\n  </head>`)
+
+        fs.writeFileSync(htmlFilePath, htmlData, 'utf8')
+      }
     }
   }
 }

@@ -5,22 +5,22 @@ inputs:
   svg-folder-path:
     description: 'The path to the folder containing the SVG files to process'
     required: true
-  token-set-input-path:
+  token-set-input-paths:
     description: 'The path to the JSON file containing the token set'
+    required: true
+  base-token-set-input-path:
+    description: 'The path to the JSON file containing the base token set'
     required: true
   dry-run:
     description: 'If true, the action will not write any files, only log the changes that would be made'
     default: 'false'
     required: false
-  token-set-key:
-    description: 'The key in the token set to use for the color replacement (e.g. "color.primary")'
+  token-set-keys:
+    description: 'The keys in the token set to use for the color replacement (e.g. "color.primary")'
     required: false
   prefer-deep-key:
     description: 'If true, the action will prefer a deep key in the token set (e.g. "color.primary.500") over a shallow key (e.g. "color.primary")'
     default: 'false'
-    required: false
-  css-map-output-path:
-    description: 'The path to a JSON file to write the CSS variable map to'
     required: false
   file-extensions:
     description: 'The file extensions to process (e.g. ".svg, .tsx")'
@@ -32,11 +32,11 @@ inputs:
   html-path:
     description: 'The path to the HTML file to inject the CSS variables into'
     required: false
-  css-output-path:
-    description: 'The path to the CSS file to write the CSS variables to'
+  css-file-output-folder-path:
+    description: 'The path to the folder to output the CSS file to'
     required: false
-  css-file-href:
-    description: 'The href to the CSS file to link to in the HTML file'
+  css-file-href-prefix:
+    description: 'The prefix to add to the CSS file href in the HTML file'
     required: false
 
 runs:
