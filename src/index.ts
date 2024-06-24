@@ -17,6 +17,20 @@ const cssFileHrefPrefix = core.getInput('css-file-href-prefix')
 const svgOutputFolderPath = core.getInput('svg-output-folder-path')
 const markGeneratedSVGFiles = core.getBooleanInput('mark-generated-files')
 
+core.debug(`svgFolderPath: ${svgFolderPath}`)
+core.debug(`tokenSetInputPaths: ${tokenSetInputPaths}`)
+core.debug(`baseTokenSetInputPath: ${baseTokenSetInputPath}`)
+core.debug(`dryRun: ${dryRun}`)
+core.debug(`tokenSetKeys: ${tokenSetKeys}`)
+core.debug(`preferDeepKey: ${preferDeepKey}`)
+core.debug(`fileExtensions: ${fileExtensions}`)
+core.debug(`injectIntoHtml: ${injectIntoHtml}`)
+core.debug(`htmlPath: ${htmlPath}`)
+core.debug(`cssFileOutputFolderPath: ${cssFileOutputFolderPath}`)
+core.debug(`cssFileHrefPrefix: ${cssFileHrefPrefix}`)
+core.debug(`svgOutputFolderPath: ${svgOutputFolderPath}`)
+core.debug(`markGeneratedSVGFiles: ${markGeneratedSVGFiles}`)
+
 let fileExtensionsArray: string[] | undefined = undefined
 if (fileExtensions) {
   fileExtensionsArray = parseAsArray(fileExtensions, 'file-extensions')
