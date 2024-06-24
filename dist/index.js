@@ -24843,6 +24843,19 @@ const cssFileOutputFolderPath = core.getInput('css-file-output-folder-path');
 const cssFileHrefPrefix = core.getInput('css-file-href-prefix');
 const svgOutputFolderPath = core.getInput('svg-output-folder-path');
 const markGeneratedSVGFiles = core.getBooleanInput('mark-generated-files');
+core.debug(`svgFolderPath: ${svgFolderPath}`);
+core.debug(`tokenSetInputPaths: ${tokenSetInputPaths}`);
+core.debug(`baseTokenSetInputPath: ${baseTokenSetInputPath}`);
+core.debug(`dryRun: ${dryRun}`);
+core.debug(`tokenSetKeys: ${tokenSetKeys}`);
+core.debug(`preferDeepKey: ${preferDeepKey}`);
+core.debug(`fileExtensions: ${fileExtensions}`);
+core.debug(`injectIntoHtml: ${injectIntoHtml}`);
+core.debug(`htmlPath: ${htmlPath}`);
+core.debug(`cssFileOutputFolderPath: ${cssFileOutputFolderPath}`);
+core.debug(`cssFileHrefPrefix: ${cssFileHrefPrefix}`);
+core.debug(`svgOutputFolderPath: ${svgOutputFolderPath}`);
+core.debug(`markGeneratedSVGFiles: ${markGeneratedSVGFiles}`);
 let fileExtensionsArray = undefined;
 if (fileExtensions) {
     fileExtensionsArray = (0, parseAsArray_1.parseAsArray)(fileExtensions, 'file-extensions');
@@ -25196,16 +25209,18 @@ const parseAsArray = (input, name) => {
     if (Array.isArray(input)) {
         return input;
     }
+    let parsed;
     try {
-        const parsed = JSON.parse(input);
-        if (!Array.isArray(parsed)) {
-            throw new Error(`Not an array. (${name})`);
-        }
-        return parsed;
+        const trimmed = input.trim();
+        parsed = JSON.parse(trimmed);
     }
     catch {
         throw new Error(`Error parsing JSON. (${name})`);
     }
+    if (!Array.isArray(parsed)) {
+        throw new Error(`Expected an array. (${name})`);
+    }
+    return parsed;
 };
 exports.parseAsArray = parseAsArray;
 
