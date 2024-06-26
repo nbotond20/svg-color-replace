@@ -30,7 +30,7 @@ jobs:
           node-version-file: '.nvmrc'
 
       - name: Check for critical vulnerabilities 🔎
-        run: npm audit --audit-level critical --omit=dev
+        run: pnpm audit --audit-level critical --prod
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
