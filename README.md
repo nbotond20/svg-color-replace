@@ -1,8 +1,39 @@
 # SVG Color Replace
 
-This action replaces colors in SVG files with CSS variables coming from a JSON color token set.
+This action replaces colors in SVG files with CSS variables coming from a JSON color token set. It also publishes a module to npm.
 
-## Inputs
+## Module
+
+### Installation
+
+```bash
+npm install svg-color-replace
+```
+
+### Usage
+
+```javascript
+import { generateSVGsWithCSS } = from "svg-color-replace"
+
+generateSVGsWithCSS({
+  svgOutputFolderPath: 'src/SVG/__generated__',
+  tokenSetKeys: ['primary', 'secondary'],
+  svgFolderPath: 'SVG',
+  preferDeepKey: false,
+  tokenSetInputPaths: [
+    "tokens/tokenSet1.json",
+    "tokens/tokenSet2.json"
+  ],
+  baseTokenSetInputPath: "tokens/base/baseTokens.json",
+  cssFileHrefPrefix: '/my-prefix',
+  cssFileOutputFolderPath: 'public',
+  fileExtensions: ['.svg', '.tsx'],
+})
+```
+
+## Action
+
+### Inputs
 
 | Name                          | Description                                                     | Required | Default |
 | ----------------------------- | --------------------------------------------------------------- | -------- | ------- |
@@ -20,7 +51,7 @@ This action replaces colors in SVG files with CSS variables coming from a JSON c
 | `svg-output-folder-path`      | The path to the folder to output the modified SVG files to.     | No       | N/A     |
 | `mark-generated-files`        | Whether to mark the generated files. (.generated. in file name) | No       | `false` |
 
-## Example usage
+### Example usage
 
 _Check the repo for the latest release. This version number is just an example._
 
