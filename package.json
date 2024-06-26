@@ -1,6 +1,6 @@
 {
   "name": "svg-color-replace",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "types": "dist/moduleIndex.d.ts",
   "main": "dist/moduleIndex.js",
