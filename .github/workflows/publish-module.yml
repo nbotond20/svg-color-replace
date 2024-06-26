@@ -52,7 +52,7 @@ jobs:
         id: set-version
         if: inputs.version && inputs.version != 'none'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           git config --local user.email "github@action.com"
           git config --local user.name "GitHub Action"
