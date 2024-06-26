@@ -13,8 +13,13 @@ on:
           - minor
           - major
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   build-publish:
+    permissions:
+      contents: write
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +62,7 @@ jobs:
           git config --local user.email "github@action.com"
           git config --local user.name "GitHub Action"
 
-          NEW_VERSION=$(npm version ${{ inputs.version }}  --message $'Update version to %s\n\n[skip ci]')
+          NEW_VERSION=$(pnpm version ${{ inputs.version }}  --message $'Update version to %s\n\n[skip ci]')
 
           git push --follow-tags --no-verify
 
