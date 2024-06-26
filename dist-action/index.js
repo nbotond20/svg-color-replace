@@ -24876,8 +24876,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(9093));
-const generateCssMaps_1 = __nccwpck_require__(3891);
-const replaceSvgColors_1 = __nccwpck_require__(7300);
 const parseAsArray_1 = __nccwpck_require__(9202);
 const generateSVGsWithCSS_1 = __nccwpck_require__(4853);
 const svgFolderPath = core.getInput('svg-folder-path', { required: true });
@@ -24930,28 +24928,6 @@ tokenSetInputPathsArray = (0, parseAsArray_1.parseAsArray)(tokenSetInputPaths, '
     preferDeepKey,
     svgOutputFolderPath,
     tokenSetKeys: tokenSetKeysArray,
-});
-const baseCssMap = (0, generateCssMaps_1.generateBaseCssMap)({
-    tokenSetKeys: tokenSetKeysArray,
-    baseTokenSetInputPath,
-    preferDeepKey,
-});
-if (Object.keys(baseCssMap).length === 0) {
-    console.warn('No baseCssMap generated!');
-}
-(0, replaceSvgColors_1.replaceSvgColors)({
-    markGeneratedSVGFiles,
-    svgOutputFolderPath,
-    tokenSetInputPaths: tokenSetInputPathsArray,
-    folderPath: svgFolderPath,
-    cssMap: baseCssMap.cssMap,
-    baseCssMapName: baseCssMap.name,
-    fileExtensions: fileExtensionsArray,
-    dryRun,
-    injectIntoHtml,
-    htmlPath,
-    cssFileHrefPrefix,
-    cssFileOutputFolderPath,
 });
 
 
