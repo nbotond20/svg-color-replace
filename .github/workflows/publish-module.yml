@@ -15,12 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Add NPM token to .npmrc
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
+          registry-url: 'https://registry.npmjs.org/'
           node-version-file: '.nvmrc'
 
       - name: Setup PNPM
@@ -46,11 +44,6 @@ jobs:
 
       - name: Publish to NPM
         run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Clear .npmrc
-        run: git checkout .npmrc
 
       - name: Create Git tag
         if: github.ref == 'refs/heads/main'
