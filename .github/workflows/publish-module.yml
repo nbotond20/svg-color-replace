@@ -1,19 +1,23 @@
-name: Publish to NPM
+name: 'Publish module'
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Type of version bump for this release.'
+        required: false
+        default: patch
+        type: string
 
 jobs:
-  publish:
+  build-publish:
+    name: Build
     runs-on: ubuntu-latest
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout 💼
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Node.js
         uses: actions/setup-node@v4
@@ -21,39 +25,48 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           node-version-file: '.nvmrc'
 
-      - name: Setup PNPM
-        run: npm i -g pnpm
+      - name: Check for critical vulnerabilities 🔎
+        run: npm audit --audit-level critical --omit=dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: cache-dependencies
+      - name: Install pnpm 🛠️
+        uses: pnpm/action-setup@v3
+        id: pnpm-install
         with:
-          path: |
-            ~/.pnpm-store
-            ./node_modules
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: 9
 
-      - name: Install dependencies
-        if: ${{ !steps.cache-dependencies.outputs.cache-hit }}
+      - name: Install dependencies 📦
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Build the project
-        run: pnpm run build:module
+      - name: Build the module 🏗️
+        run: pnpm build:module
 
-      - name: Publish to NPM
-        run: npm publish
+      - name: Set version 📝
+        id: set-version
+        if: inputs.version && inputs.version != 'none'
+        run: |
+          git config --local user.email "github@action.com"
+          git config --local user.name "GitHub Action"
+
+          NEW_VERSION=$(npm version ${{ inputs.version }}  --message $'Update version to %s\n\n[skip ci]')
+
+          git push --follow-tags --no-verify
+
+          # set the version as output to be printed later
+          echo "new-version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the package 📚
+        run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Git tag
-        if: github.ref == 'refs/heads/main'
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git tag -a v$VERSION -m "Release v$VERSION"
-          git push origin v$VERSION
+      - name: Create release
+        uses: nbotond20/create-release@v1.2.3
+        with:
+          use-sem-ver: true
+          tag: ${{ steps.set-version.outputs.new-version }}
