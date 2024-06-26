@@ -29,16 +29,16 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           node-version-file: '.nvmrc'
 
-      - name: Check for critical vulnerabilities 🔎
-        run: pnpm audit --audit-level critical --prod
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Install pnpm 🛠️
         uses: pnpm/action-setup@v3
         id: pnpm-install
         with:
           version: 9
+
+      - name: Check for critical vulnerabilities 🔎
+        run: pnpm audit --audit-level critical --prod
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies 📦
         run: pnpm install --frozen-lockfile
