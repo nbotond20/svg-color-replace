@@ -2,10 +2,6 @@ name: Create release
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag'
-        required: true
   push:
     paths-ignore:
       - '**/**.md'
@@ -22,8 +18,19 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Create Git tag
+        if: github.ref == 'refs/heads/main'
+        id: create-tag
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git tag -a v$VERSION -m "Release v$VERSION"
+          git push origin v$VERSION
+          echo "::set-output name=tag::v$VERSION"
+
       - name: Create release
         uses: nbotond20/create-release@v1.2.3
         with:
           use-sem-ver: true
-          tag: ${{ inputs.tag }}
+          tag: ${{ steps.create-tag.outputs.tag }}
