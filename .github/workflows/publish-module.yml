@@ -1,0 +1,52 @@
+name: Publish to NPM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.9
+
+      - name: Setup PNPM
+        run: npm i -g pnpm
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: |
+            ~/.pnpm-store
+            ./node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        if: ${{ !steps.cache-dependencies.outputs.cache-hit }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the project
+        run: pnpm run build:module
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Git tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          git tag -a v$VERSION -m "Release v$VERSION"
+          git push origin v$VERSION

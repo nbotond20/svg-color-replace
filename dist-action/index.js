@@ -24797,6 +24797,55 @@ exports.generateBaseCssMap = generateBaseCssMap;
 
 /***/ }),
 
+/***/ 4853:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateSVGsWithCSS = void 0;
+const generateCssMaps_1 = __nccwpck_require__(3891);
+const replaceSvgColors_1 = __nccwpck_require__(7300);
+const parseAsArray_1 = __nccwpck_require__(9202);
+const generateSVGsWithCSS = ({ baseTokenSetInputPath, cssFileHrefPrefix, cssFileOutputFolderPath, dryRun, fileExtensions, htmlPath, injectIntoHtml, markGeneratedSVGFiles, preferDeepKey, svgFolderPath, svgOutputFolderPath, tokenSetInputPaths, tokenSetKeys, }) => {
+    let fileExtensionsArray = [];
+    if (fileExtensions) {
+        fileExtensionsArray = (0, parseAsArray_1.parseAsArray)(fileExtensions, 'file-extensions');
+    }
+    let tokenSetKeysArray = undefined;
+    if (tokenSetKeys) {
+        tokenSetKeysArray = (0, parseAsArray_1.parseAsArray)(tokenSetKeys, 'token-set-keys');
+    }
+    let tokenSetInputPathsArray = undefined;
+    tokenSetInputPathsArray = (0, parseAsArray_1.parseAsArray)(tokenSetInputPaths, 'token-set-input-paths');
+    const baseCssMap = (0, generateCssMaps_1.generateBaseCssMap)({
+        tokenSetKeys: tokenSetKeysArray,
+        baseTokenSetInputPath,
+        preferDeepKey,
+    });
+    if (Object.keys(baseCssMap).length === 0) {
+        console.warn('No baseCssMap generated!');
+    }
+    (0, replaceSvgColors_1.replaceSvgColors)({
+        markGeneratedSVGFiles,
+        svgOutputFolderPath,
+        tokenSetInputPaths: tokenSetInputPathsArray,
+        folderPath: svgFolderPath,
+        cssMap: baseCssMap.cssMap,
+        baseCssMapName: baseCssMap.name,
+        fileExtensions: fileExtensionsArray,
+        dryRun,
+        injectIntoHtml,
+        htmlPath,
+        cssFileHrefPrefix,
+        cssFileOutputFolderPath,
+    });
+};
+exports.generateSVGsWithCSS = generateSVGsWithCSS;
+
+
+/***/ }),
+
 /***/ 2694:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -24830,6 +24879,7 @@ const core = __importStar(__nccwpck_require__(9093));
 const generateCssMaps_1 = __nccwpck_require__(3891);
 const replaceSvgColors_1 = __nccwpck_require__(7300);
 const parseAsArray_1 = __nccwpck_require__(9202);
+const generateSVGsWithCSS_1 = __nccwpck_require__(4853);
 const svgFolderPath = core.getInput('svg-folder-path', { required: true });
 const tokenSetInputPaths = core.getInput('token-set-input-paths', { required: true });
 const baseTokenSetInputPath = core.getInput('base-token-set-input-path', { required: true });
@@ -24866,6 +24916,21 @@ if (tokenSetKeys) {
 }
 let tokenSetInputPathsArray = undefined;
 tokenSetInputPathsArray = (0, parseAsArray_1.parseAsArray)(tokenSetInputPaths, 'token-set-input-paths');
+(0, generateSVGsWithCSS_1.generateSVGsWithCSS)({
+    svgFolderPath,
+    baseTokenSetInputPath,
+    tokenSetInputPaths: tokenSetInputPathsArray,
+    cssFileHrefPrefix,
+    cssFileOutputFolderPath,
+    dryRun,
+    fileExtensions: fileExtensionsArray,
+    htmlPath,
+    injectIntoHtml,
+    markGeneratedSVGFiles,
+    preferDeepKey,
+    svgOutputFolderPath,
+    tokenSetKeys: tokenSetKeysArray,
+});
 const baseCssMap = (0, generateCssMaps_1.generateBaseCssMap)({
     tokenSetKeys: tokenSetKeysArray,
     baseTokenSetInputPath,

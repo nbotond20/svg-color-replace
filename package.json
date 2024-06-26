@@ -2,15 +2,31 @@
   "name": "svg-color-replace",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.mjs",
+  "types": "dist/moduleIndex.d.ts",
+  "main": "dist/moduleIndex.js",
+  "module": "dist/moduleIndex.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/moduleIndex.js",
+      "import": "./dist/moduleIndex.mjs",
+      "types": "./dist/moduleIndex.d.ts"
+    }
+  },
   "scripts": {
     "watch-tsc": "tsc -w -p .",
     "watch-node": "node --watch dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "ncc build src/index.ts -o dist --license licenses.txt",
+    "build:action": "ncc build src/index.ts -o dist-action --license licenses.txt",
+    "build:module": "tsup",
     "prepare": "husky install"
   },
-  "keywords": ["svg", "generate", "colors", "brand", "replace"],
+  "keywords": [
+    "svg",
+    "generate",
+    "colors",
+    "brand",
+    "replace"
+  ],
   "author": "Nuszpl Botond",
   "license": "ISC",
   "dependencies": {
@@ -27,6 +43,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^9.0.11",
     "prettier": "^3.3.2",
+    "tsup": "^8.1.0",
     "typescript": "^5.4.5"
   }
 }

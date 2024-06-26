@@ -1,7 +1,7 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-pnpm run build
+pnpm run build:action
 git restore --staged .
 git add dist
 

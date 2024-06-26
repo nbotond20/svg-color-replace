@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import { generateBaseCssMap } from './generateCssMaps'
 import { replaceSvgColors } from './replaceSvgColors'
 import { parseAsArray } from './utils/parseAsArray'
+import { generateSVGsWithCSS } from './generateSVGsWithCSS'
 
 const svgFolderPath = core.getInput('svg-folder-path', { required: true })
 const tokenSetInputPaths = core.getInput('token-set-input-paths', { required: true })
@@ -44,27 +45,18 @@ if (tokenSetKeys) {
 let tokenSetInputPathsArray: string[] | undefined = undefined
 tokenSetInputPathsArray = parseAsArray(tokenSetInputPaths, 'token-set-input-paths')
 
-const baseCssMap = generateBaseCssMap({
-  tokenSetKeys: tokenSetKeysArray,
+generateSVGsWithCSS({
+  svgFolderPath,
   baseTokenSetInputPath,
-  preferDeepKey,
-})
-
-if (Object.keys(baseCssMap).length === 0) {
-  console.warn('No baseCssMap generated!')
-}
-
-replaceSvgColors({
-  markGeneratedSVGFiles,
-  svgOutputFolderPath,
   tokenSetInputPaths: tokenSetInputPathsArray,
-  folderPath: svgFolderPath,
-  cssMap: baseCssMap.cssMap,
-  baseCssMapName: baseCssMap.name,
-  fileExtensions: fileExtensionsArray,
-  dryRun,
-  injectIntoHtml,
-  htmlPath,
   cssFileHrefPrefix,
   cssFileOutputFolderPath,
+  dryRun,
+  fileExtensions: fileExtensionsArray,
+  htmlPath,
+  injectIntoHtml,
+  markGeneratedSVGFiles,
+  preferDeepKey,
+  svgOutputFolderPath,
+  tokenSetKeys: tokenSetKeysArray,
 })
