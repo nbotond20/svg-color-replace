@@ -1,6 +1,6 @@
 {
   "name": "svg-color-replace",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "",
   "types": "dist/moduleIndex.d.ts",
   "main": "dist/moduleIndex.js",
@@ -35,7 +35,7 @@
     "@octokit/action": "^7.0.0"
   },
   "devDependencies": {
-    "@types/node": "20.14.6",
+    "@types/node": "20.14.9",
     "@typescript-eslint/eslint-plugin": "7.13.1",
     "@vercel/ncc": "^0.38.1",
     "eslint": "^9.5.0",
@@ -44,6 +44,6 @@
     "husky": "^9.0.11",
     "prettier": "^3.3.2",
     "tsup": "^8.1.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   }
 }
