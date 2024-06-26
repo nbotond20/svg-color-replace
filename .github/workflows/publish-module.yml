@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: 20.9
 
+      - name: Add NPM token to .npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" >> .npmrc
+
       - name: Setup PNPM
         run: npm i -g pnpm
 
@@ -43,6 +46,9 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Clear .npmrc
+        run: git checkout .npmrc
 
       - name: Create Git tag
         if: github.ref == 'refs/heads/main'
