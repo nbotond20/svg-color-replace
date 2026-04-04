@@ -1,10 +1,14 @@
-name: 'Publish module'
+name: "Publish module"
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Type of version bump for this release.'
+        description: "Type of version bump for this release."
         required: false
         default: patch
         type: choice
@@ -31,8 +35,8 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          registry-url: 'https://registry.npmjs.org'
-          node-version-file: '.nvmrc'
+          registry-url: "https://registry.npmjs.org"
+          node-version-file: ".nvmrc"
 
       - name: Install pnpm 🛠️
         uses: pnpm/action-setup@v3
@@ -47,8 +51,6 @@ jobs:
 
       - name: Install dependencies 📦
         run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build the module 🏗️
         run: pnpm build:module
@@ -71,10 +73,6 @@ jobs:
 
       - name: Publish the package 📚
         run: pnpm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create release
         uses: nbotond20/create-release@v1.2.3
